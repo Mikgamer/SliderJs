@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+		
+		html{scroll-behavior:smooth;}
+		
+		body{padding:0;margin:0;}
+
+		body>div:nth-child(1){
+			width:100%;
+		    height:100vh;
+		    display:flex;
+		    align-items:center;
+		    justify-content:center;
+		    box-shadow:inset 0 0 200px 100px #000000a1;
+		}
+
+		body>div:nth-child(2){
+		    padding: 20px;
+		    display: flex;
+		    width: 100%;
+		    min-height: 100vh;
+		    background-color: #1f1f1f;
+		    box-shadow: inset 0 0 100px 0px #000000;
+		    justify-content: center;
+		    align-items: center;
+		    box-sizing: border-box;
+		}
+
+		code{
+			display: block;
+		    font-family: monospace;
+		    white-space: pre;
+		    background-color: #212121;
+		    padding: 10px 60px;
+		    color: #c1c1c1;
+		    border-radius: 10px;
+		    box-shadow: 0 0 0px 1px #dedede, inset 0 0 40px 0px #2508ef85;
+		}
+
+		.slider{position:relative;width:500px;height:500px;overflow:hidden;}
+		.slider-img{width:100%;height:100%;display:flex;flex-direction:column;flex-wrap:wrap;}
+		.slider-img img{width:100%;height:100%;object-fit:cover;}
+
+		/*.slider-img:hover{transform:translateX(-1024px);}*/
+
+		.previous,.next{
+			z-index:1;
+			display:flex;
+			align-items:center;
+			position:absolute;
+			top:50%;
+			transform:translateY(-50%);
+		    font-weight:bold;
+		    font-family:monospace;
+		    color:white;
+		    cursor:pointer;user-select:none;
+		}
+		.previous{left:5%;}
+		.next{right:5%;}
+
+		.slider-img .previous{left:15%;}
+		.slider-img .next{right:15%;}
+
+
+		.info-code{display:flex;flex-direction:column;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);align-items:center;text-decoration:none;color:black;font-family:monospace;font-size:30px;}
+		.info-code:hover{color:white;}
+		.info-code>span:nth-child(2){transform-origin:center;transform:rotate(45deg);border-bottom:5px solid;border-right:5px solid;width:20px;height:20px;}
+
+		#ToMenu{position:absolute;top:10px;left:15px;display:inline-block;background-color:#e8463a;color:white;text-decoration:none;font-family:monospace;transition:.5s;border:solid 6px #e8463a;border-radius:30px;box-shadow:inset 0 0 0 9px white;font-size:45px;padding:25px 50px;}
+		#ToMenu:hover{transition:.8s;box-shadow:none;}
+		@media(min-width:992px){#ToMenu{border:solid 2px #e8463a;border-radius:10px;box-shadow:inset 0 0 0 2px white;font-size:20px;padding:10px 20px;}}
+
+
+
+	</style>
+</head>
+<body>
+	<div>
+		<div class="slider">
+			<div class="slider-img">
+				<img src="img1.jpg">
+				<img src="img2.jpg">
+				<img src="img3.jpg">
+			</div>
+			<div class="previous"><</div>
+			<div class="next">></div>
+		</div>
+		<a class="info-code" href="#code">
+			<span>code</span>
+			<span></span>
+		</a>
+	</div>
+	<div id="code">
+		<code>
+// set defaults values
+var slider=".slider"; // Set the slider (Work with multiple sliders)
+var transi=0.2; // How many Xs is needed for a slide to enter the screen
+var infi=1; // 1 if you want your slider to be infinite
+var auto=0; // "right" if you want the slide to scroll to the right or "left" for the left (require infi=1)
+var autotime=5000; // Every X/1000 seconds the slide scroll (require auto=1)
+
+// get sliders with class
+var sliders=Array.from(document.querySelectorAll(slider));
+
+// set transition time of element
+var t=function(el){el.style.transition=transi+"s";}
+
+// get offsetX of the element
+var getTX=function(el){
+	var wc=parseInt(el.style.transform.replace(/translateX\(|\)/g,''),10);
+	if(isNaN(wc)){wc=0;}
+	return wc;
+}
+// set offsetX of the element
+var setTX=function(el,offset){el.style.transform="translateX("+offset+"px)";}
+
+sliders.forEach(function(slide){
+	// Height&Width of the slider
+	var h=slide.clientHeight;
+	var w=slide.clientWidth;
+	// Set vars
+	var previous=slide.getElementsByClassName('previous')[0];
+	var next=slide.getElementsByClassName('next')[0];
+	var sliderimg=slide.getElementsByClassName('slider-img')[0];
+	var imgs=sliderimg.querySelectorAll('*>*');
+	var nbimgs=imgs.length;
+
+	// Set styles
+	previous.style.fontSize=h/10+"px";
+	next.style.fontSize=h/10+"px";
+
+	if(infi==1){ // If infi=1, put slides at the begining and the end of the slider for smooth scroll
+		var temparr=Array.from(sliderimg.children);
+		temparr.unshift(imgs[nbimgs-1]);temparr.push(imgs[0]);
+		sliderimg.innerHTML=temparr.map(e=>e.outerHTML).join('');
+		setTX(sliderimg,-w);
+	}
+
+	previous.addEventListener('click',function(e){
+		var wc=getTX(sliderimg);
+		t(sliderimg);
+		if(infi==1){
+			if((Math.abs(wc)/w)>1){
+				wc=wc+w;
+				setTX(sliderimg,wc);
+			}else if((Math.abs(wc)/w)>0){ // If this is the fist slide, swap to the end
+				wc=wc+w;
+				setTX(sliderimg,wc);
+				setTimeout(function(){
+					sliderimg.style.transition="0s";
+					setTX(sliderimg,-(w*nbimgs));
+				},transi*1000);
+			}
+		}else{
+			// Simple slide if no infi
+			if((Math.abs(wc)/w)>0){
+				wc=wc+w;
+				setTX(sliderimg,wc);
+			}
+		}
+	});
+
+	next.addEventListener('click',function(e){
+		var wc=getTX(sliderimg);
+		t(sliderimg);
+		if(infi==1){
+			if((Math.abs(wc)/w)&#60;nbimgs){
+				wc=wc-w;
+				setTX(sliderimg,wc);
+			}else if((Math.abs(wc)/w)&#60;nbimgs+1){ // If this is the last slide, swap to the begining
+				wc=wc-w;
+				setTX(sliderimg,wc);
+				setTimeout(function(){
+					sliderimg.style.transition="0s";
+					setTX(sliderimg,-w);
+				},transi*1000);
+			}
+		}else{
+			// Simple slide if no infi
+			if((Math.abs(wc)/w)&#60;nbimgs-1){
+				wc=wc-w;
+				setTX(sliderimg,wc);
+			}
+		}
+	});
+	
+	if(infi==1){
+		if(auto=="right"){setInterval(function(){next.click();},autotime);}
+		else if(auto=="left"){setInterval(function(){previous.click();},autotime);}
+	}
+});
+		</code>
+	</div>
+	<a id="ToMenu" href="http://mikgamer.fr">mikgamer.fr</a>
+</body>
+
+<script type="text/javascript" src="script.js"></script>
+
+</html>
